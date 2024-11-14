@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 # Load the trained model
 model = joblib.load('lightgbm_churn_model.pkl')  # Ensure this file is in the same directory as app.py
 
+# Get the model's expected features
+expected_features = model.booster_.feature_name()
+
 # Set up SHAP explainer
 explainer = shap.TreeExplainer(model)
 
@@ -33,35 +36,21 @@ features = {
 }
 
 # Function to prepare input data with consistent feature columns
-def prepare_input_data(features, feature_columns):
+def prepare_input_data(features, expected_features):
     # Convert the features dictionary to a DataFrame
     input_data = pd.DataFrame([features])
 
-    # Ensure all feature columns are present
-    for col in feature_columns:
+    # Ensure all expected feature columns are present
+    for col in expected_features:
         if col not in input_data.columns:
             input_data[col] = 0  # Add missing column with 0s
 
     # Reorder columns to match the model's expected input order
-    input_data = input_data[feature_columns]
+    input_data = input_data[expected_features]
     return input_data
 
-# Define the exact columns that the model expects (match with the trained model's feature names)
-feature_columns = [
-    "Customer_Age", "Gender", "Dependent_count", "Months_on_book", 
-    "Contacts_Count_12_mon", "Total_Relationship_Count", "Months_Inactive_12_mon", 
-    "Credit_Limit", "Total_Revolving_Bal", "Avg_Open_To_Buy", "Total_Trans_Amt", 
-    "Total_Trans_Ct", "Total_Amt_Chng_Q4_Q1", "Total_Ct_Chng_Q4_Q1", 
-    "Marital_Status_Single", "Marital_Status_Unknown", "Income_Category_$40K - $60K", 
-    "Income_Category_$60K - $80K", "Income_Category_$80K - $120K", 
-    "Income_Category_Less than $40K", "Income_Category_Unknown", 
-    "Education_Level_High School", "Education_Level_Doctorate", 
-    "Education_Level_Graduate", "Education_Level_Uneducated"
-    # Add all other columns expected by the model here
-]
-
 # Prepare input data
-input_data_prepared = prepare_input_data(features, feature_columns)
+input_data_prepared = prepare_input_data(features, expected_features)
 
 # Predict churn probability
 if st.button("Predict Churn Probability"):
