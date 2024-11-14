@@ -52,11 +52,14 @@ def prepare_input_data(features, expected_features):
 # Prepare input data
 input_data_prepared = prepare_input_data(features, expected_features)
 
-# Function to display SHAP plot in Streamlit
-def st_shap(plot, height=None):
-    from streamlit.components.v1 import html
-    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-    html(shap_html, height=height)
+# Debugging Step: Display the input data structure and check for missing features
+st.write("### Debugging Info: Input Data Structure")
+st.write(input_data_prepared)
+missing_features = [feat for feat in expected_features if feat not in input_data_prepared.columns]
+if missing_features:
+    st.write(f"Missing Features: {missing_features}")
+else:
+    st.write("All expected features are present.")
 
 # Predict churn probability
 if st.button("Predict Churn Probability"):
@@ -66,17 +69,12 @@ if st.button("Predict Churn Probability"):
         st.write(f"Probability of Churning: {churn_probability:.2%}")
 
         # SHAP explanation
-        shap_values = explainer.shap_values(input_data_prepared)
-
-        # For binary classification, use shap_values[0] as SHAP outputs only one set of SHAP values for binary classes
+        shap_values = explainer(input_data_prepared)
         st.write("SHAP Explanation:")
 
-        # Display the SHAP force plot using Streamlit
-        st_shap(shap.force_plot(explainer.expected_value, shap_values[0], input_data_prepared), height=300)
+        # Display the SHAP force plot using Streamlit's HTML display
+        force_plot_html = shap.plots.force(explainer.expected_value, shap_values.values, input_data_prepared).html()
+        st.components.v1.html(force_plot_html, height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
-    except KeyError as e:
-        st.error(f"A key error occurred, please check input columns: {str(e)}")
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {str(e)}")
