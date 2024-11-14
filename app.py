@@ -60,17 +60,12 @@ if st.button("Predict Churn Probability"):
         st.write(f"Probability of Churning: {churn_probability:.2%}")
 
         # SHAP explanation
-        shap_values = explainer.shap_values(input_data_prepared)
+        shap_values = explainer(input_data_prepared)
         st.write("SHAP Explanation:")
 
-        # Check if shap_values is a list (which happens with binary classification)
-        if isinstance(shap_values, list):
-            shap_values = shap_values[0]  # Use the first element for binary models
-
-        # Create a SHAP force plot and display it as a static image
-        fig, ax = plt.subplots(figsize=(10, 3))
-        shap.force_plot(explainer.expected_value, shap_values, input_data_prepared, matplotlib=True, show=False, ax=ax)
-        st.pyplot(fig)
+        # Display the SHAP force plot using Streamlit's HTML display
+        force_plot_html = shap.plots.force(explainer.expected_value, shap_values.values, input_data_prepared).html()
+        st.components.v1.html(force_plot_html, height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
