@@ -17,13 +17,23 @@ explainer = shap.TreeExplainer(model)
 st.title("Churn Prediction App")
 st.write("Enter the customer's information to predict the probability of churn.")
 
-# Define input fields
-customer_age = st.number_input("Customer Age:", min_value=18, max_value=100, value=30)
+# Define input fields with more realistic default values
+customer_age = st.number_input("Customer Age:", min_value=18, max_value=100, value=45)
 gender = st.selectbox("Gender:", ["Male", "Female"])
-dependent_count = st.number_input("Dependent Count:", min_value=0, max_value=10, value=1)
+dependent_count = st.number_input("Dependent Count:", min_value=0, max_value=10, value=2)
 education_level = st.selectbox("Education Level:", ["Uneducated", "High School", "Graduate", "Post-Graduate", "Doctorate", "Unknown"])
 marital_status = st.selectbox("Marital Status:", ["Single", "Married", "Divorced", "Unknown"])
 income_category = st.selectbox("Income Category:", ["Less than $40K", "$40K - $60K", "$60K - $80K", "$80K - $120K", "$120K +", "Unknown"])
+
+# Additional input fields based on your debugging insights with typical default values
+total_trans_amt = st.number_input("Total Transaction Amount:", min_value=0, value=5000)
+total_amt_chng_q4_q1 = st.number_input("Transaction Amount Change Q4 to Q1:", min_value=0.0, max_value=5.0, value=1.5)
+total_trans_ct = st.number_input("Total Transaction Count:", min_value=0, value=50)
+total_ct_chng_q4_q1 = st.number_input("Transaction Count Change Q4 to Q1:", min_value=0.0, max_value=2.0, value=0.7)
+total_revolving_bal = st.number_input("Total Revolving Balance:", min_value=0, value=1500)
+total_relationship_count = st.number_input("Total Relationship Count:", min_value=0, max_value=6, value=3)
+credit_limit = st.number_input("Credit Limit:", min_value=0, value=10000)
+avg_utilization_ratio = st.number_input("Average Utilization Ratio:", min_value=0.0, max_value=1.0, value=0.25)
 
 # Create a dictionary of features
 features = {
@@ -32,7 +42,15 @@ features = {
     "Dependent_count": dependent_count,
     "Education_Level_" + education_level: 1,
     "Marital_Status_" + marital_status: 1,
-    "Income_Category_" + income_category: 1
+    "Income_Category_" + income_category: 1,
+    "Total_Trans_Amt": total_trans_amt,
+    "Total_Amt_Chng_Q4_Q1": total_amt_chng_q4_q1,
+    "Total_Trans_Ct": total_trans_ct,
+    "Total_Ct_Chng_Q4_Q1": total_ct_chng_q4_q1,
+    "Total_Revolving_Bal": total_revolving_bal,
+    "Total_Relationship_Count": total_relationship_count,
+    "Credit_Limit": credit_limit,
+    "Avg_Utilization_Ratio": avg_utilization_ratio
 }
 
 # Function to prepare input data with consistent feature columns
@@ -52,14 +70,11 @@ def prepare_input_data(features, expected_features):
 # Prepare input data
 input_data_prepared = prepare_input_data(features, expected_features)
 
-# Debugging Step: Display the input data structure and check for missing features
-st.write("### Debugging Info: Input Data Structure")
-st.write(input_data_prepared)
-missing_features = [feat for feat in expected_features if feat not in input_data_prepared.columns]
-if missing_features:
-    st.write(f"Missing Features: {missing_features}")
-else:
-    st.write("All expected features are present.")
+# Function to display SHAP plot in Streamlit
+def st_shap(plot, height=None):
+    from streamlit.components.v1 import html
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    html(shap_html, height=height)
 
 # Predict churn probability
 if st.button("Predict Churn Probability"):
@@ -69,12 +84,15 @@ if st.button("Predict Churn Probability"):
         st.write(f"Probability of Churning: {churn_probability:.2%}")
 
         # SHAP explanation
-        shap_values = explainer(input_data_prepared)
+        shap_values = explainer.shap_values(input_data_prepared)
         st.write("SHAP Explanation:")
 
-        # Display the SHAP force plot using Streamlit's HTML display
-        force_plot_html = shap.plots.force(explainer.expected_value, shap_values.values, input_data_prepared).html()
-        st.components.v1.html(force_plot_html, height=300)
+        # Display the SHAP force plot using Streamlit
+        st_shap(shap.force_plot(explainer.expected_value, shap_values[1], input_data_prepared), height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
+    except KeyError as e:
+        st.error(f"A key error occurred, please check input columns: {str(e)}")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {str(e)}")
