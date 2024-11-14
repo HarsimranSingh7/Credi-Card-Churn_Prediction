@@ -52,6 +52,12 @@ def prepare_input_data(features, expected_features):
 # Prepare input data
 input_data_prepared = prepare_input_data(features, expected_features)
 
+# Function to display SHAP plot in Streamlit
+def st_shap(plot, height=None):
+    from streamlit.components.v1 import html
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    html(shap_html, height=height)
+
 # Predict churn probability
 if st.button("Predict Churn Probability"):
     try:
@@ -60,12 +66,15 @@ if st.button("Predict Churn Probability"):
         st.write(f"Probability of Churning: {churn_probability:.2%}")
 
         # SHAP explanation
-        shap_values = explainer(input_data_prepared)
+        shap_values = explainer.shap_values(input_data_prepared)
         st.write("SHAP Explanation:")
 
-        # Display the SHAP force plot using Streamlit's HTML display
-        force_plot_html = shap.plots.force(explainer.expected_value, shap_values.values, input_data_prepared).html()
-        st.components.v1.html(force_plot_html, height=300)
+        # Display the SHAP force plot using Streamlit
+        st_shap(shap.force_plot(explainer.expected_value, shap_values[1], input_data_prepared), height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
+    except KeyError as e:
+        st.error(f"A key error occurred, please check input columns: {str(e)}")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {str(e)}")
