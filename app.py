@@ -17,7 +17,7 @@ explainer = shap.TreeExplainer(model)
 st.title("Churn Prediction App")
 st.write("Enter the customer's information to predict the probability of churn.")
 
-# Define input fields with more realistic default values
+# Define input fields with realistic default values
 customer_age = st.number_input("Customer Age:", min_value=18, max_value=100, value=45)
 gender = st.selectbox("Gender:", ["Male", "Female"])
 dependent_count = st.number_input("Dependent Count:", min_value=0, max_value=10, value=2)
@@ -25,7 +25,7 @@ education_level = st.selectbox("Education Level:", ["Uneducated", "High School",
 marital_status = st.selectbox("Marital Status:", ["Single", "Married", "Divorced", "Unknown"])
 income_category = st.selectbox("Income Category:", ["Less than $40K", "$40K - $60K", "$60K - $80K", "$80K - $120K", "$120K +", "Unknown"])
 
-# Additional input fields based on your debugging insights with typical default values
+# Additional input fields with typical default values
 total_trans_amt = st.number_input("Total Transaction Amount:", min_value=0, value=5000)
 total_amt_chng_q4_q1 = st.number_input("Transaction Amount Change Q4 to Q1:", min_value=0.0, max_value=5.0, value=1.5)
 total_trans_ct = st.number_input("Total Transaction Count:", min_value=0, value=50)
@@ -88,7 +88,7 @@ if st.button("Predict Churn Probability"):
         st.write("SHAP Explanation:")
 
         # Display the SHAP force plot using Streamlit
-        st_shap(shap.force_plot(explainer.expected_value, shap_values[1], input_data_prepared), height=300)
+        st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1], input_data_prepared), height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
