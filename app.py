@@ -63,9 +63,13 @@ if st.button("Predict Churn Probability"):
         shap_values = explainer.shap_values(input_data_prepared)
         st.write("SHAP Explanation:")
 
+        # Check if shap_values is a list (which happens with binary classification)
+        if isinstance(shap_values, list):
+            shap_values = shap_values[0]  # Use the first element for binary models
+
         # Create a SHAP force plot and display it as a static image
         fig, ax = plt.subplots(figsize=(10, 3))
-        shap.force_plot(explainer.expected_value[1], shap_values[1], input_data_prepared, matplotlib=True, show=False, ax=ax)
+        shap.force_plot(explainer.expected_value, shap_values, input_data_prepared, matplotlib=True, show=False, ax=ax)
         st.pyplot(fig)
 
     except ValueError as e:
