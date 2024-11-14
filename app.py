@@ -29,27 +29,36 @@ income_map = {"Less than $40K": 0, "$40K - $60K": 1, "$60K - $80K": 2, "$80K - $
 
 # Create a dictionary of features
 features = {
-    "Customer_Age": customer_age,
-    "Gender": 1 if gender == "Male" else 0,
-    "Dependent_count": dependent_count,
-    "Education_Level": education_map[education_level],
-    "Marital_Status": marital_map[marital_status],
-    "Income_Category": income_map[income_category]
+    "Customer_Age": int(customer_age),  # Ensure integer type
+    "Gender": 1 if gender == "Male" else 0,  # Binary encoding
+    "Dependent_count": int(dependent_count),  # Ensure integer type
+    "Education_Level": education_map[education_level],  # Map to encoded value
+    "Marital_Status": marital_map[marital_status],  # Map to encoded value
+    "Income_Category": income_map[income_category]  # Map to encoded value
 }
 
 # Predict churn probability
 if st.button("Predict Churn Probability"):
-    # Convert features into a DataFrame
-    input_data = pd.DataFrame([features])
+    # Convert features into a DataFrame with the exact order of columns
+    input_data = pd.DataFrame([features], columns=[
+        "Customer_Age", "Gender", "Dependent_count", 
+        "Education_Level", "Marital_Status", "Income_Category"
+    ])
     
     # Calculate churn probability
-    churn_probability = model.predict_proba(input_data)[0][1]
-    st.write(f"Probability of Churning: {churn_probability:.2%}")
-    
-    # SHAP explanation
-    shap_values = explainer.shap_values(input_data)
-    st.write("SHAP Explanation:")
-    
-    # Use matplotlib to display the SHAP force plot
-    shap.force_plot(explainer.expected_value[1], shap_values[1], input_data, matplotlib=True)
-    st.pyplot()
+    try:
+        churn_probability = model.predict_proba(input_data)[0][1]
+        st.write(f"Probability of Churning: {churn_probability:.2%}")
+        
+        # SHAP explanation
+        shap_values = explainer.shap_values(input_data)
+        st.write("SHAP Explanation:")
+        
+        # Use matplotlib to display the SHAP force plot
+        shap.force_plot(explainer.expected_value[1], shap_values[1], input_data, matplotlib=True)
+        st.pyplot()
+        
+    except ValueError as e:
+        st.error(f"An error occurred: {e}")
+        st.write("Please check that all input fields match the format expected by the model.")
+
