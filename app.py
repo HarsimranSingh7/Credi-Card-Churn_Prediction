@@ -22,14 +22,19 @@ education_level = st.selectbox("Education Level:", ["Uneducated", "High School",
 marital_status = st.selectbox("Marital Status:", ["Single", "Married", "Divorced", "Unknown"])
 income_category = st.selectbox("Income Category:", ["Less than $40K", "$40K - $60K", "$60K - $80K", "$80K - $120K", "$120K +", "Unknown"])
 
+# Encode categorical variables as they were during model training
+education_map = {"Uneducated": 0, "High School": 1, "Graduate": 2, "Post-Graduate": 3, "Doctorate": 4, "Unknown": -1}
+marital_map = {"Single": 0, "Married": 1, "Divorced": 2, "Unknown": -1}
+income_map = {"Less than $40K": 0, "$40K - $60K": 1, "$60K - $80K": 2, "$80K - $120K": 3, "$120K +": 4, "Unknown": -1}
+
 # Create a dictionary of features
 features = {
     "Customer_Age": customer_age,
     "Gender": 1 if gender == "Male" else 0,
     "Dependent_count": dependent_count,
-    "Education_Level": education_level,
-    "Marital_Status": marital_status,
-    "Income_Category": income_category
+    "Education_Level": education_map[education_level],
+    "Marital_Status": marital_map[marital_status],
+    "Income_Category": income_map[income_category]
 }
 
 # Predict churn probability
@@ -44,6 +49,7 @@ if st.button("Predict Churn Probability"):
     # SHAP explanation
     shap_values = explainer.shap_values(input_data)
     st.write("SHAP Explanation:")
-    shap.initjs()
-    st_shap = shap.force_plot(explainer.expected_value[1], shap_values[1], input_data, matplotlib=True)
-    st.pyplot(st_shap)
+    
+    # Use matplotlib to display the SHAP force plot
+    shap.force_plot(explainer.expected_value[1], shap_values[1], input_data, matplotlib=True)
+    st.pyplot()
