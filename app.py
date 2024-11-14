@@ -103,3 +103,12 @@ if st.button("Predict Churn Probability"):
         st.error(f"A key error occurred, please check input columns: {str(e)}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
+
+# Print the prepared input data for verification
+st.write("Debugging Information:")
+st.write("Prepared Input Data:", input_data_prepared)
+
+# Predict churn probability
+churn_probability = model.predict_proba(input_data_prepared)[0][1]
+st.write(f"Probability of Churning: {churn_probability:.2%}")
+
