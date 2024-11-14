@@ -62,9 +62,11 @@ if st.button("Predict Churn Probability"):
         # SHAP explanation
         shap_values = explainer.shap_values(input_data_prepared)
         st.write("SHAP Explanation:")
-        shap.initjs()
-        st_shap = shap.force_plot(explainer.expected_value[1], shap_values[1], input_data_prepared, matplotlib=True)
-        st.pyplot(st_shap)
+
+        # Create a SHAP force plot and display it as a static image
+        fig, ax = plt.subplots(figsize=(10, 3))
+        shap.force_plot(explainer.expected_value[1], shap_values[1], input_data_prepared, matplotlib=True, show=False, ax=ax)
+        st.pyplot(fig)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
