@@ -88,7 +88,14 @@ if st.button("Predict Churn Probability"):
         st.write("SHAP Explanation:")
 
         # Display the SHAP force plot using Streamlit
-        st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1], input_data_prepared), height=300)
+        if isinstance(explainer.expected_value, list):
+            expected_value = explainer.expected_value[1]  # binary classification
+            shap_plot = shap.force_plot(expected_value, shap_values[1], input_data_prepared)
+        else:
+            expected_value = explainer.expected_value
+            shap_plot = shap.force_plot(expected_value, shap_values, input_data_prepared)
+        
+        st_shap(shap_plot, height=300)
 
     except ValueError as e:
         st.error(f"An error occurred: {str(e)}")
