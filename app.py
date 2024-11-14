@@ -5,7 +5,7 @@ import shap
 import matplotlib.pyplot as plt
 
 # Load the trained model
-model = joblib.load('/content/lightgbm_churn_model.pkl')  # Ensure this file is in the same directory as app.py
+model = joblib.load('lightgbm_churn_model.pkl')  # Ensure this file is in the same directory as app.py
 
 # Set up SHAP explainer
 explainer = shap.TreeExplainer(model)
